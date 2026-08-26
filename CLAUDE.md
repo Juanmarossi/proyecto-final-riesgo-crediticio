@@ -18,3 +18,10 @@ Modelo de clasificación de riesgo crediticio. El dataset es `Base_de_datos.xlsx
 - Antes de crear un archivo, verificá si ya existe.
 - No corras `git commit`, `git push` ni `git merge` salvo que te lo pida explícitamente.
 - Una vez creada la estructura de carpetas, no la modifiques.
+
+## Avance 2 - modelamiento
+- El módulo src/ft_engineering.py es la única fuente de features. Los notebooks lo importan, no reimplementan la lógica.
+- Toda transformación va dentro de un Pipeline o ColumnTransformer de sklearn. Nada de transformar el DataFrame completo antes del split: eso filtra información del test al train.
+- El split es estratificado por Pago_atiempo, con random_state=42 en todo lo que acepte semilla.
+- Ninguna métrica se reporta sin decir sobre qué conjunto se calculó.
+- Antes de agregar una feature nueva, escribí en una celda markdown qué hipótesis de negocio la justifica.
