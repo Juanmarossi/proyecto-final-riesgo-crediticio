@@ -572,6 +572,84 @@ def generar_recomendaciones(historico_drift):
     return mensajes
 
 
+def simular_drift(datos, tipo, variable, intensidad):
+    """Genera una copia de `datos` con drift SINTÉTICO inyectado en una columna.
+
+    Sirve únicamente para probar que el sistema de alertas dispara de
+    verdad cuando hay un cambio real — nunca se usa con datos reales.
+    Quien llama a esta función es responsable de dejar en claro, en
+    cualquier lugar donde se muestre el resultado, que es una simulación.
+
+    Tres tipos:
+
+    - "desplazamiento" (variable numérica): corre la media `intensidad`
+      desvíos estándar de la propia distribución de la columna. Ej.:
+      `intensidad=2` mueve la media dos desvíos hacia arriba (negativo
+      la mueve hacia abajo).
+    - "dispersion" (variable numérica): multiplica el desvío estándar
+      por `intensidad`, sin mover la media — la variable queda más
+      dispersa (intensidad > 1) o más concentrada (intensidad < 1)
+      alrededor del mismo centro.
+    - "categorico" (variable categórica): concentra una proporción
+      `intensidad` (0 a 1) de los casos en la categoría más frecuente
+      de la columna, redistribuyendo el resto entre las demás
+      categorías en sus proporciones originales. Usa una semilla fija
+      para que la simulación sea reproducible.
+
+    Parameters
+    ----------
+    datos : pandas.DataFrame
+        Datos originales. No se modifican: se devuelve una copia.
+    tipo : str
+        "desplazamiento", "dispersion" o "categorico".
+    variable : str
+        Columna a alterar.
+    intensidad : float
+        Desvíos estándar (desplazamiento), factor multiplicativo
+        (dispersion), o proporción 0-1 (categorico).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Copia de `datos` con la columna `variable` alterada.
+    """
+    datos_simulados = datos.copy()
+
+    if tipo == "desplazamiento":
+        desvio = datos_simulados[variable].std()
+        datos_simulados[variable] = datos_simulados[variable] + intensidad * desvio
+
+    elif tipo == "dispersion":
+        media = datos_simulados[variable].mean()
+        datos_simulados[variable] = media + (datos_simulados[variable] - media) * intensidad
+
+    elif tipo == "categorico":
+        conteo = datos_simulados[variable].value_counts(normalize=True, dropna=True)
+        if conteo.empty:
+            raise ValueError(f"simular_drift: la columna '{variable}' no tiene valores no nulos.")
+        categoria_frecuente = conteo.index[0]
+        n_total = len(datos_simulados)
+        n_categoria_frecuente = int(round(n_total * intensidad))
+
+        otras_categorias = conteo.index[1:]
+        rng = np.random.default_rng(42)
+        nuevos_valores = [categoria_frecuente] * n_categoria_frecuente
+        if len(otras_categorias) > 0 and n_total > n_categoria_frecuente:
+            proporciones_otras = conteo[otras_categorias] / conteo[otras_categorias].sum()
+            resto = rng.choice(otras_categorias, size=n_total - n_categoria_frecuente, p=proporciones_otras.to_numpy())
+            nuevos_valores += list(resto)
+        nuevos_valores = nuevos_valores[:n_total]
+        rng.shuffle(nuevos_valores)
+        datos_simulados[variable] = nuevos_valores
+
+    else:
+        raise ValueError(
+            f"simular_drift: tipo desconocido '{tipo}' (usar 'desplazamiento', 'dispersion' o 'categorico')"
+        )
+
+    return datos_simulados
+
+
 if __name__ == "__main__":
     from src.ft_engineering import CATEGORICAS_NOMINALES, CATEGORICAS_ORDINALES, NUMERICAS, NUMERICAS_DERIVADAS
 
