@@ -66,5 +66,14 @@
   ],
   "columnas_excluidas_por_fuga": [
     "puntaje"
-  ]
+  ],
+  "versiones": {
+    "python": "3.14.7",
+    "scikit-learn": "1.9.0",
+    "xgboost": "3.4.1",
+    "pandas": "3.0.5",
+    "numpy": "2.5.2",
+    "joblib": "1.5.3",
+    "scipy": "1.18.1"
+  }
 }
