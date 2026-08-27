@@ -32,3 +32,10 @@ Modelo de clasificación de riesgo crediticio. El dataset es `Base_de_datos.xlsx
 - Toda métrica de drift se reporta junto a la cantidad de observaciones del período. Con muestras chicas, cualquier métrica es ruido.
 - Los umbrales de alerta viven en un solo diccionario de configuración, no repartidos por el código.
 - La app de Streamlit no calcula drift: solo lee lo que model_monitoring.py dejó escrito.
+
+## Avance 4 - despliegue
+- La API nunca reimplementa lógica de features: importa crear_features desde src/ft_engineering.py.
+- El orden dentro del endpoint es siempre: validar, crear features, predecir. Nunca predecir sobre el JSON crudo.
+- requirements-api.txt lleva versiones exactas y solo las librerías que la API necesita en runtime.
+- El modelo se carga una sola vez al arrancar la aplicación, no en cada request.
+- Ningún endpoint devuelve un traceback al cliente: los errores se registran y se responden con un mensaje claro.
