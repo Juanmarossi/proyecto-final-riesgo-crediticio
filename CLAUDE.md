@@ -25,3 +25,10 @@ Modelo de clasificación de riesgo crediticio. El dataset es `Base_de_datos.xlsx
 - El split es estratificado por Pago_atiempo, con random_state=42 en todo lo que acepte semilla.
 - Ninguna métrica se reporta sin decir sobre qué conjunto se calculó.
 - Antes de agregar una feature nueva, escribí en una celda markdown qué hipótesis de negocio la justifica.
+
+## Avance 3 - monitoreo
+- La ventana de referencia se define una sola vez y no cambia entre períodos.
+- Los bins de una métrica se calculan sobre la referencia y se aplican tal cual a la ventana actual. Nunca se recalculan por período: si no, comparás dos escalas distintas.
+- Toda métrica de drift se reporta junto a la cantidad de observaciones del período. Con muestras chicas, cualquier métrica es ruido.
+- Los umbrales de alerta viven en un solo diccionario de configuración, no repartidos por el código.
+- La app de Streamlit no calcula drift: solo lee lo que model_monitoring.py dejó escrito.
